@@ -84,3 +84,7 @@ func (p *Pool) Truncate(oid string, size uint64) error {
         return RadosError(int(ret))
     }
 }
+
+func (p *Pool) GetContext() C.rados_ioctx_t {
+    return C.rados_ioctx_t(p.ioctx)
+}

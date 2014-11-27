@@ -1,4 +1,4 @@
-# go-rados - Go bindings for RADOS distributed object store
+# go-rados - Go bindings for RADOS distributed object store and block devices
 
 ## Installation
 
@@ -64,3 +64,20 @@ delete a pool with the given name. The following will delete the pool named
 ```go
 conn.DeletePool("new_pool")
 ```
+
+### RADOS block devices
+
+```go
+rbd, _ := rbd.List(pool)
+fmt.Println("RBDs", pools)
+
+order, _ := rbd.Create(pool, "kiki", 512)
+fmt.Println("Order", order)
+
+ret, err := rbd.Open(pool, "kiki", true, "zizi")
+fmt.Println("Open ?", ret, err)
+
+rbd.Rename(pool, "kiki", "koko")
+rbd.Remove(pool, "koko")
+```
+
