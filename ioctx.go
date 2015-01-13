@@ -36,6 +36,8 @@ type IOContext struct {
     ioctx C.rados_ioctx_t
 }
 
+type Snapshot C.rados_snap_t
+
 // Write writes len(data) bytes to the object with key oid starting at byte
 // offset offset. It returns an error, if any.
 func (ioctx *IOContext) Write(oid string, data []byte, offset uint64) error {
@@ -218,6 +220,46 @@ func (ioctx *IOContext) RollbackObject(oid, snap string) error {
     c_name := C.CString(snap)
     defer C.free(unsafe.Pointer(c_name))
     ret := C.rados_ioctx_snap_rollback(ioctx.ioctx, c_oid, c_name)
+    if ret < 0 {
+        return RadosError(ret)
+    } else {
+        return nil
+    }
+}
+
+// SetReadSnapshot sets the snapshot from which reads are performed.
+func (ioctx *IOContext) SetReadSnapshot(snap *Snapshot) {
+    C.rados_ioctx_snap_set_read(ioctx.ioctx, C.rados_snap_t(*snap))
+}
+
+
+// CreateManagedSnapshot allocates an ID for a self-managed snapshot.
+func (ioctx *IOContext) CreateManagedSnapshot() (*Snapshot, error) {
+    var snap Snapshot
+    ret := C.rados_ioctx_selfmanaged_snap_create(ioctx.ioctx, (*C.rados_snap_t)(&snap))
+    if ret < 0 {
+        return nil, RadosError(ret)
+    } else {
+        return &snap, nil
+    }
+}
+
+// RemoveManagedSnapshot removes a self-managed snapshot.
+func (ioctx *IOContext) RemoveManagedSnapshot(snap *Snapshot) error {
+    ret := C.rados_ioctx_selfmanaged_snap_remove(ioctx.ioctx, C.rados_snap_t(*snap))
+    if ret < 0 {
+        return RadosError(ret)
+    } else {
+        return nil
+    }
+}
+
+// RollbackManagedObject restores an object to its state within a self-managed
+// snapshot.
+func (ioctx *IOContext) RollbackManagedObject(oid string, snap *Snapshot) error {
+    c_oid := C.CString(oid)
+    defer C.free(unsafe.Pointer(c_oid))
+    ret := C.rados_ioctx_selfmanaged_snap_rollback(ioctx.ioctx, c_oid, C.rados_snap_t(*snap))
     if ret < 0 {
         return RadosError(ret)
     } else {
