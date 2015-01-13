@@ -186,3 +186,41 @@ func (ioctx *IOContext) ListObjects(listFn ObjectListFunc) error {
 
     panic("invalid state")
 }
+
+// CreateSnapshot creates a pool-wide snapshot.
+func (ioctx *IOContext) CreateSnapshot(name string) error {
+    c_name := C.CString(name)
+    defer C.free(unsafe.Pointer(c_name))
+    ret := C.rados_ioctx_snap_create(ioctx.ioctx, c_name)
+    if ret < 0 {
+        return RadosError(ret)
+    } else {
+        return nil
+    }
+}
+
+// RemoveSnapshot deletes a pool snapshot.
+func (ioctx *IOContext) RemoveSnapshot(name string) error {
+    c_name := C.CString(name)
+    defer C.free(unsafe.Pointer(c_name))
+    ret := C.rados_ioctx_snap_remove(ioctx.ioctx, c_name)
+    if ret < 0 {
+        return RadosError(ret)
+    } else {
+        return nil
+    }
+}
+
+// RollbackObject restores an object to its state within a snapshot.
+func (ioctx *IOContext) RollbackObject(oid, snap string) error {
+    c_oid := C.CString(oid)
+    defer C.free(unsafe.Pointer(c_oid))
+    c_name := C.CString(snap)
+    defer C.free(unsafe.Pointer(c_name))
+    ret := C.rados_ioctx_snap_rollback(ioctx.ioctx, c_oid, c_name)
+    if ret < 0 {
+        return RadosError(ret)
+    } else {
+        return nil
+    }
+}
