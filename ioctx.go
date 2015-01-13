@@ -190,7 +190,7 @@ func (ioctx *IOContext) ListObjects(listFn ObjectListFunc) error {
 }
 
 // CreateSnapshot creates a pool-wide snapshot.
-func (ioctx *IOContext) CreateSnapshot(name string) error {
+func (ioctx *IOContext) CreatePoolSnapshot(name string) error {
     c_name := C.CString(name)
     defer C.free(unsafe.Pointer(c_name))
     ret := C.rados_ioctx_snap_create(ioctx.ioctx, c_name)
@@ -202,7 +202,7 @@ func (ioctx *IOContext) CreateSnapshot(name string) error {
 }
 
 // RemoveSnapshot deletes a pool snapshot.
-func (ioctx *IOContext) RemoveSnapshot(name string) error {
+func (ioctx *IOContext) RemovePoolSnapshot(name string) error {
     c_name := C.CString(name)
     defer C.free(unsafe.Pointer(c_name))
     ret := C.rados_ioctx_snap_remove(ioctx.ioctx, c_name)
