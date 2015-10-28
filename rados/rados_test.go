@@ -317,6 +317,20 @@ func TestReadWrite(t *testing.T) {
 	assert.Equal(t, n_out, len(bytes_in))
 	assert.Equal(t, bytes_in, bytes_out)
 
+	bytes_accum := []byte{}
+	for _, str_in := range []string{"input", " ", "another", " ", "data"} {
+		bytes_in = []byte(str_in)
+		err = pool.Append("obj", bytes_in)
+		assert.NoError(t, err)
+
+		bytes_accum = append(bytes_accum, bytes_in...)
+		bytes_out = make([]byte, len(bytes_accum))
+		n_out, err = pool.Read("obj", bytes_out, 0)
+
+		assert.Equal(t, n_out, len(bytes_accum))
+		assert.Equal(t, bytes_accum, bytes_out)
+	}
+
 	pool.Destroy()
 	conn.Shutdown()
 }
